@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Neon Dash — Cyber Prism Endless Runner</title>
+  <meta name="description"
+    content="A fast-paced neon green cyberpunk endless geometric platformer inspired by Geometry Dash. Guide the emerald prism through an infinite procedural obstacle gauntlet.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <div id="game-container">
+    <!-- Game Canvas -->
+    <canvas id="game-canvas" width="1280" height="720"></canvas>
+
+    <!-- Top In-Game HUD (Visible during gameplay) -->
+    <div id="hud-overlay" class="ui-layer hud-hidden">
+      <div class="hud-top-bar">
+        <div class="hud-level-info">
+          <span id="hud-mode-title" class="neon-text-green">ENDLESS MATRIX</span>
+          <span id="hud-attempt-counter">ATTEMPT 1</span>
+        </div>
+
+        <!-- Live Distance Gauge -->
+        <div class="distance-gauge-container">
+          <div class="distance-display">
+            <span class="distance-label">DISTANCE</span>
+            <span id="hud-distance-val" class="distance-number">0 <span class="distance-unit">m</span></span>
+          </div>
+          <div class="record-display">
+            <span class="record-label">BEST:</span>
+            <span id="hud-best-val" class="record-number">0 m</span>
+          </div>
+          <div id="new-record-badge" class="new-record-badge hud-hidden">NEW BEST!</div>
+        </div>
+
+        <div class="hud-actions">
+          <div id="hud-speed-display" class="hud-speed">SPEED: <span id="hud-speed-val">360</span> px/s</div>
+          <button id="btn-pause" class="icon-btn" title="Pause Game (Esc)">
+            <svg viewBox="0 0 24 24" width="22" height="22">
+              <rect x="6" y="4" width="4" height="16" fill="currentColor" rx="1" />
+              <rect x="14" y="4" width="4" height="16" fill="currentColor" rx="1" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Practice Mode Controls (Hidden unless Practice is active) -->
+      <div id="practice-tools" class="practice-tools hud-hidden">
+        <div class="practice-badge">PRACTICE MODE</div>
+        <button id="btn-place-checkpoint" class="practice-btn" title="Place Checkpoint (Z)">+ Place Point</button>
+        <button id="btn-remove-checkpoint" class="practice-btn" title="Remove Last Checkpoint (X)">- Undo</button>
+      </div>
+
+      <!-- Mobile Touch Jump Indicator -->
+      <div id="mobile-touch-hint" class="mobile-touch-zone">
+        <span>TAP ANYWHERE TO JUMP</span>
+      </div>
+    </div>
+
+    <!-- 1. Minimalist Arcade Start Screen (Clean, no bars) -->
+    <div id="menu-screen" class="ui-layer active-screen">
+      <div class="menu-content start-screen-minimal">
+        <header class="game-logo-container">
+          <div class="neon-sub-title">CYBER MATRIX PLATFORMER</div>
+          <h1 class="neon-title" data-text="NEON DASH">NEON DASH</h1>
+          <div class="neon-tagline">3D PRISM • ENDLESS RUN</div>
+        </header>
+
+        <!-- Only Prompt to Press Space to Start (No bars at starting) -->
+        <div id="start-click-area" class="start-prompt-container">
+          <div class="start-key-badge pulse-glow">PRESS SPACE TO START</div>
+          <div class="start-sub-hint">[ SPACE ] • [ W ] • [ ↑ ] • [ TAP / CLICK ]</div>
+          <div class="best-record-tag">CURRENT BEST: <span id="menu-best-distance">0 m</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Pause Menu -->
+    <div id="pause-modal" class="ui-layer modal-layer hud-hidden">
+      <div class="modal-card">
+        <h2 class="modal-title neon-text-lime">RUN PAUSED</h2>
+        <div class="pause-stats">
+          <div>Distance: <span id="pause-distance">0 m</span></div>
+          <div>Record: <span id="pause-best">0 m</span></div>
+          <div>Attempt: <span id="pause-attempt">1</span></div>
+        </div>
+        <div class="modal-buttons">
+          <button id="btn-resume" class="cyber-btn primary-btn">RESUME</button>
+          <button id="btn-pause-restart" class="cyber-btn secondary-btn">RESTART RUN</button>
+          <button id="btn-pause-settings" class="cyber-btn secondary-btn">SETTINGS</button>
+          <button id="btn-pause-instructions" class="cyber-btn secondary-btn">HOW TO PLAY</button>
+          <button id="btn-pause-menu" class="cyber-btn secondary-btn">MAIN MENU</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Settings Modal -->
+    <div id="settings-modal" class="ui-layer modal-layer hud-hidden">
+      <div class="modal-card">
+        <h2 class="modal-title neon-text-yellow">SETTINGS</h2>
+        <div class="settings-group">
+          <label for="setting-master-vol">Master Volume: <span id="val-master-vol">80%</span></label>
+          <input type="range" id="setting-master-vol" min="0" max="100" value="80" class="cyber-slider">
+        </div>
+        <div class="settings-group">
+          <label for="setting-music-vol">Music Volume: <span id="val-music-vol">70%</span></label>
+          <input type="range" id="setting-music-vol" min="0" max="100" value="70" class="cyber-slider">
+        </div>
+        <div class="settings-group">
+          <label for="setting-sfx-vol">SFX Volume: <span id="val-sfx-vol">85%</span></label>
+          <input type="range" id="setting-sfx-vol" min="0" max="100" value="85" class="cyber-slider">
+        </div>
+        <div class="settings-group">
+          <label for="setting-quality">Visual Quality &amp; Bloom</label>
+          <select id="setting-quality" class="cyber-select">
+            <option value="high" selected>High (Bloom + Full Particles)</option>
+            <option value="medium">Medium (Standard FX)</option>
+            <option value="low">Low (Performance Boost)</option>
+          </select>
+        </div>
+        <div class="settings-group toggle-group">
+          <span>Screen Shake on Crash</span>
+          <label class="switch">
+            <input type="checkbox" id="setting-shake" checked>
+            <span class="slider-toggle"></span>
+          </label>
+        </div>
+        <div class="settings-group toggle-group">
+          <span>Prism Neon Trail</span>
+          <label class="switch">
+            <input type="checkbox" id="setting-trail" checked>
+            <span class="slider-toggle"></span>
+          </label>
+        </div>
+        <div class="modal-buttons">
+          <button id="btn-close-settings" class="cyber-btn primary-btn">SAVE &amp; CLOSE</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. How To Play Modal -->
+    <div id="instructions-modal" class="ui-layer modal-layer hud-hidden">
+      <div class="modal-card instructions-card">
+        <h2 class="modal-title neon-text-green">HOW TO PLAY</h2>
+        <div class="instructions-content">
+          <div class="guide-item">
+            <div class="guide-icon">&#9650;</div>
+            <div class="guide-desc">
+              <strong>The 3D Emerald Prism</strong>
+              <p>Rushes continuously forward on its flat base. Each jump rotates the prism across its 3 faces. Your
+                score is the total distance covered!</p>
+            </div>
+          </div>
+          <div class="guide-item">
+            <div class="guide-icon">&#9888;</div>
+            <div class="guide-desc">
+              <strong>Spikes &amp; Hazards</strong>
+              <p>Triangular spikes, pits, and laser cutters destroy you instantly on contact. Jump over or weave around
+                them!</p>
+            </div>
+          </div>
+          <div class="guide-item">
+            <div class="guide-icon">&#9645;</div>
+            <div class="guide-desc">
+              <strong>Solid Platforms &amp; Blocks</strong>
+              <p>Land safely on top of blocks on your flat base. Crashing into a block's front wall will shatter the
+                prism!</p>
+            </div>
+          </div>
+          <div class="guide-item">
+            <div class="guide-icon">&#9678;</div>
+            <div class="guide-desc">
+              <strong>Jump Pads &amp; Rings</strong>
+              <p>Green jump pads automatically launch you over hazards. Mid-air jump rings give an extra boost when you
+                press jump while touching them!</p>
+            </div>
+          </div>
+          <div class="guide-item">
+            <div class="guide-icon">&#9881;</div>
+            <div class="guide-desc">
+              <strong>Controls</strong>
+              <p><strong>Space / Up Arrow / W / Left Click / Touch:</strong> Jump<br>
+                <strong>Escape:</strong> Pause
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-buttons">
+          <button id="btn-close-instructions" class="cyber-btn primary-btn">GOT IT</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- In-Game Crash Banner / Quick Respawn Toast -->
+    <div id="crash-toast" class="crash-toast hud-hidden">
+      <span class="crash-text">CRASHED!</span>
+      <span id="crash-distance-result" class="crash-distance">Distance: 0 m</span>
+      <span class="crash-subtext">Press Jump or wait to retry</span>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+
+</html>
